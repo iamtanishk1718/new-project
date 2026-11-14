@@ -1,0 +1,212 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ============================================================================
+ * Theme Palette Tokens: Standard Orbital vs. Deep Space (Night-Shift Mode)
+ * ============================================================================ */
+:root {
+  --ds-void: #040508;
+  --ds-canvas: #05070c;
+  --ds-shell: rgba(5, 7, 12, 0.94);
+  --ds-surface: rgba(11, 16, 28, 0.88);
+  --ds-surface-subtle: rgba(8, 12, 22, 0.82);
+  --ds-surface-elevated: rgba(13, 19, 34, 0.94);
+  --ds-border: rgba(30, 41, 59, 0.95);
+  --ds-border-hover: rgba(34, 211, 238, 0.35);
+  --ds-grid-line: rgba(148, 163, 184, 0.04);
+  --ds-horizon-glow: transparent;
+  --ds-panel-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+  --ds-glow-cyan: 0 0 16px -6px rgba(34, 211, 238, 0.14);
+  --ds-glow-amber: 0 0 18px -6px rgba(245, 158, 11, 0.18);
+  --ds-glow-red: 0 0 22px -4px rgba(220, 38, 38, 0.24);
+  --ds-text-primary: #e2e8f0;
+  --ds-text-muted: #94a3b8;
+  --ds-scroll-track: rgba(15, 23, 42, 0.6);
+  --ds-scroll-thumb: rgba(51, 65, 85, 0.8);
+  --ds-scroll-thumb-hover: rgba(100, 116, 139, 0.9);
+}
+
+:root[data-theme="deep-space"] {
+  --ds-void: #010206;
+  --ds-canvas: #020309;
+  --ds-shell: rgba(2, 4, 11, 0.96);
+  --ds-surface: rgba(5, 9, 20, 0.92);
+  --ds-surface-subtle: rgba(3, 6, 15, 0.9);
+  --ds-surface-elevated: rgba(7, 12, 26, 0.96);
+  --ds-border: rgba(26, 41, 74, 0.62);
+  --ds-border-hover: rgba(34, 211, 238, 0.42);
+  --ds-grid-line: rgba(56, 189, 248, 0.028);
+  --ds-horizon-glow: radial-gradient(ellipse 85% 50% at 50% -12%, rgba(8, 145, 178, 0.13), transparent 72%);
+  --ds-panel-shadow:
+    inset 0 1px 0 0 rgba(125, 211, 252, 0.055),
+    0 12px 32px -14px rgba(0, 0, 0, 0.9),
+    0 0 24px -10px rgba(14, 116, 144, 0.18);
+  --ds-glow-cyan:
+    0 0 22px -5px rgba(34, 211, 238, 0.22),
+    inset 0 1px 0 0 rgba(103, 232, 249, 0.09);
+  --ds-glow-amber:
+    0 0 24px -5px rgba(245, 158, 11, 0.26),
+    inset 0 1px 0 0 rgba(252, 211, 77, 0.09);
+  --ds-glow-red:
+    0 0 28px -4px rgba(220, 38, 38, 0.34),
+    inset 0 1px 0 0 rgba(248, 113, 113, 0.12);
+  --ds-text-primary: #cbd5e1;
+  --ds-text-muted: #7c8ea8;
+  --ds-scroll-track: rgba(2, 4, 10, 0.9);
+  --ds-scroll-thumb: rgba(30, 58, 95, 0.65);
+  --ds-scroll-thumb-hover: rgba(34, 211, 238, 0.38);
+}
+
+html,
+body {
+  background-color: var(--ds-void);
+  color: var(--ds-text-primary);
+}
+
+/* Custom low-glare scrollbars for telemetry feeds */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ds-scroll-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ds-scroll-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ds-scroll-thumb-hover);
+}
+
+@keyframes firefall-alarm-caution {
+  0%, 100% { opacity: 0.14; }
+  50% { opacity: 0.38; }
+}
+
+@keyframes firefall-alarm-high {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.56; }
+}
+
+@keyframes firefall-alarm-critical {
+  0%, 100% { opacity: 0.16; }
+  45% { opacity: 0.78; }
+}
+
+@keyframes firefall-alarm-extreme {
+  0%, 100% { opacity: 0.12; }
+  40% { opacity: 0.92; }
+}
+
+.alarm-strobe-caution {
+  animation: firefall-alarm-caution 1.1s ease-in-out infinite;
+}
+
+.alarm-strobe-high {
+  animation: firefall-alarm-high 0.58s ease-in-out infinite;
+}
+
+.alarm-strobe-critical {
+  animation: firefall-alarm-critical 0.32s linear infinite;
+}
+
+.alarm-strobe-extreme {
+  animation: firefall-alarm-extreme 0.18s linear infinite;
+}
+
+.aerospace-grid-bg {
+  background-color: var(--ds-canvas);
+  background-image:
+    var(--ds-horizon-glow),
+    linear-gradient(to right, var(--ds-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ds-grid-line) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
+}
+
+.deep-space-shell {
+  background-color: var(--ds-shell);
+  border-color: var(--ds-border);
+}
+
+:root[data-theme="deep-space"] .deep-space-shell {
+  box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.92), 0 1px 0 0 rgba(34, 211, 238, 0.08);
+}
+
+.panel-surface {
+  background-color: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  box-shadow: var(--ds-panel-shadow);
+}
+
+.panel-surface-subtle {
+  background-color: var(--ds-surface-subtle);
+  border: 1px solid var(--ds-border);
+  box-shadow: inset 0 1px 0 0 rgba(148, 163, 184, 0.03);
+}
+
+/* Calibrated phosphor glow helpers for Deep Space night-shift telemetry cards */
+:root[data-theme="deep-space"] .ds-card-cyan {
+  background-color: var(--ds-surface);
+  border-color: rgba(24, 53, 84, 0.72);
+  box-shadow: var(--ds-glow-cyan);
+}
+
+:root[data-theme="deep-space"] .ds-card-cyan:hover {
+  border-color: rgba(34, 211, 238, 0.45);
+  box-shadow: 0 0 26px -4px rgba(34, 211, 238, 0.28), inset 0 1px 0 0 rgba(103, 232, 249, 0.14);
+}
+
+:root[data-theme="deep-space"] .ds-card-amber {
+  box-shadow: var(--ds-glow-amber);
+}
+
+:root[data-theme="deep-space"] .ds-card-red {
+  box-shadow: var(--ds-glow-red);
+}
+
+/* Soften dark slate panel cards inside main workspace during Deep Space night shifts */
+:root[data-theme="deep-space"] main .bg-slate-900\/90,
+:root[data-theme="deep-space"] main .bg-slate-900\/85,
+:root[data-theme="deep-space"] main .bg-slate-900\/80,
+:root[data-theme="deep-space"] main .bg-\[\#070b14\],
+:root[data-theme="deep-space"] main .bg-\[\#090e1a\] {
+  background-color: var(--ds-surface);
+  box-shadow: var(--ds-panel-shadow);
+}
+
+:root[data-theme="deep-space"] main .bg-slate-950\/80,
+:root[data-theme="deep-space"] main .bg-slate-950\/70,
+:root[data-theme="deep-space"] main .bg-slate-950\/60 {
+  background-color: var(--ds-surface-subtle);
+}
+
+:root[data-theme="deep-space"] .text-glow-cyan {
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+}
+
+:root[data-theme="deep-space"] .text-glow-amber {
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.38);
+}
+
+:root[data-theme="deep-space"] .text-glow-red {
+  text-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alarm-strobe-caution,
+  .alarm-strobe-high,
+  .alarm-strobe-critical,
+  .alarm-strobe-extreme {
+    animation: none;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Remix Flame in Firefall | AI Space Habitat Environmental Monitoring \u0026 Risk Prediction System",
+  "description": "NASA Space Apps Challenge intelligent environmental monitoring, multi-parameter risk assessment, predictive hazard detection, 3D habitat digital twin, bioscience telemetry, and decision-support platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

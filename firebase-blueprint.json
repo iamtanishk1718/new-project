@@ -1,0 +1,222 @@
+{
+  "entities": {
+    "HabitatProfile": {
+      "title": "HabitatProfile",
+      "description": "Configuration profile and reference baselines for a space habitat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique habitat identifier" },
+        "name": { "type": "string", "description": "Display name of habitat" },
+        "type": { "type": "string", "description": "Type: iss, lunar, mars, spacecraft, rover, module, custom" },
+        "volumeM3": { "type": "number", "description": "Total pressurized volume in cubic meters" },
+        "maxOccupancy": { "type": "number", "description": "Maximum crew capacity" },
+        "activeOccupants": { "type": "number", "description": "Current crew members aboard" },
+        "status": { "type": "string", "description": "Operational status" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last configuration update" }
+      },
+      "required": ["id", "name", "type", "volumeM3", "maxOccupancy"]
+    },
+    "EnvironmentalReading": {
+      "title": "EnvironmentalReading",
+      "description": "Telemetry snapshot of habitat environmental and life support sensors",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Reading identifier" },
+        "habitatId": { "type": "string", "description": "Associated habitat ID" },
+        "dataMode": { "type": "string", "description": "live, simulation, or manual" },
+        "timestamp": { "type": "string", "description": "ISO timestamp of sensor reading" },
+        "oxygenPercent": { "type": "number", "description": "O2 concentration percentage" },
+        "carbonDioxidePpm": { "type": "number", "description": "CO2 concentration in ppm" },
+        "pressureKPa": { "type": "number", "description": "Atmospheric cabin pressure in kPa" },
+        "temperatureC": { "type": "number", "description": "Internal temperature in Celsius" },
+        "relativeHumidity": { "type": "number", "description": "Relative humidity percentage" },
+        "airflowVelocity": { "type": "number", "description": "Airflow velocity in m/s" },
+        "radiationDoseRate": { "type": "number", "description": "Radiation dose rate in uSv/h" },
+        "smokeDetected": { "type": "boolean", "description": "Smoke detector status" },
+        "fireDetected": { "type": "boolean", "description": "Fire combustion detector status" },
+        "oxygenReserveHours": { "type": "number", "description": "Estimated O2 reserve remaining in hours" },
+        "co2ScrubberStatus": { "type": "string", "description": "Scrubber status: nominal, degraded, failed" },
+        "powerSupplyPercent": { "type": "number", "description": "Primary power supply availability percentage" },
+        "waterAvailabilityPercent": { "type": "number", "description": "Clean water availability percentage" }
+      },
+      "required": ["id", "habitatId", "timestamp", "oxygenPercent", "carbonDioxidePpm", "pressureKPa", "temperatureC"]
+    },
+    "RiskAssessment": {
+      "title": "RiskAssessment",
+      "description": "Calculated multi-parameter risk evaluation output",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Assessment identifier" },
+        "habitatId": { "type": "string", "description": "Associated habitat ID" },
+        "timestamp": { "type": "string", "description": "ISO timestamp" },
+        "overallHealthScore": { "type": "number", "description": "0-100 environmental health score" },
+        "overallRiskScore": { "type": "number", "description": "0-100 calculated risk score" },
+        "riskClassification": { "type": "string", "description": "normal, caution, high_risk, critical, extreme_emergency" },
+        "atmosphericRisk": { "type": "number", "description": "0-100 score" },
+        "thermalRisk": { "type": "number", "description": "0-100 score" },
+        "fireRisk": { "type": "number", "description": "0-100 score" },
+        "radiationRisk": { "type": "number", "description": "0-100 score" },
+        "ventilationRisk": { "type": "number", "description": "0-100 score" },
+        "lifeSupportRisk": { "type": "number", "description": "0-100 score" },
+        "resourceRisk": { "type": "number", "description": "0-100 score" },
+        "activeWarningsCount": { "type": "number", "description": "Number of active warning conditions" },
+        "criticalHazardsCount": { "type": "number", "description": "Number of critical hazard conditions" }
+      },
+      "required": ["id", "habitatId", "overallHealthScore", "overallRiskScore", "riskClassification"]
+    },
+    "EmergencyEvent": {
+      "title": "EmergencyEvent",
+      "description": "Critical emergency incident and response record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Event identifier" },
+        "habitatId": { "type": "string", "description": "Associated habitat ID" },
+        "timestamp": { "type": "string", "description": "ISO timestamp of event trigger" },
+        "title": { "type": "string", "description": "Incident title" },
+        "affectedSystem": { "type": "string", "description": "Affected subsystem" },
+        "severity": { "type": "string", "description": "critical or extreme" },
+        "triggerParameters": { "type": "string", "description": "Parameters that tripped the threshold" },
+        "protocolName": { "type": "string", "description": "Designated emergency protocol" },
+        "status": { "type": "string", "description": "active, acknowledged, resolved" }
+      },
+      "required": ["id", "habitatId", "timestamp", "title", "severity", "protocolName"]
+    },
+    "MissionLog": {
+      "title": "MissionLog",
+      "description": "Log entry recording simulation, configuration changes, or notes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Log ID" },
+        "habitatId": { "type": "string", "description": "Habitat ID" },
+        "timestamp": { "type": "string", "description": "ISO timestamp" },
+        "author": { "type": "string", "description": "Author user email or system" },
+        "category": { "type": "string", "description": "simulation, override, alert, recommendation" },
+        "notes": { "type": "string", "description": "Log content" }
+      },
+      "required": ["id", "habitatId", "timestamp", "category", "notes"]
+    },
+    "ThresholdConfig": {
+      "title": "ThresholdConfig",
+      "description": "User-configured 5-tier environmental risk threshold profile per habitat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Threshold configuration document ID", "maxLength": 64 },
+        "habitatType": { "type": "string", "description": "Habitat type key (iss, mars, lunar, etc.)", "maxLength": 32 },
+        "habitatName": { "type": "string", "description": "Human-readable habitat profile name", "maxLength": 120 },
+        "ownerId": { "type": "string", "description": "Authenticated owner UID", "maxLength": 128 },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last save", "maxLength": 64 },
+        "thresholds": { "type": "object", "description": "Nested map of parameter 5-tier bounds" }
+      },
+      "required": ["id", "habitatType", "habitatName", "ownerId", "updatedAt", "thresholds"]
+    },
+    "IntegrationConfig": {
+      "title": "IntegrationConfig",
+      "description": "Non-secret integration connection metadata and public settings (secrets stored in server vault only)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Owner-scoped document ID", "maxLength": 128 },
+        "integrationId": { "type": "string", "description": "Integration identifier (gmail, telegram, twilio, etc.)", "maxLength": 48 },
+        "ownerId": { "type": "string", "description": "Authenticated owner UID", "maxLength": 128 },
+        "enabled": { "type": "boolean", "description": "Whether integration is enabled" },
+        "status": { "type": "string", "description": "not_configured, connected, disconnected, auth_failed, error", "maxLength": 32 },
+        "publicConfig": { "type": "object", "description": "Non-secret public configuration map" },
+        "hasSecrets": { "type": "boolean", "description": "Indicates server vault holds encrypted secret credentials" },
+        "maskedSecretSummary": { "type": "string", "description": "Masked summary preview without exposing credentials", "maxLength": 160 },
+        "lastSyncAt": { "type": "string", "description": "ISO timestamp of last successful sync or verification", "maxLength": 64 },
+        "lastError": { "type": "string", "description": "Sanitized last error message", "maxLength": 400 },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last configuration change", "maxLength": 64 }
+      },
+      "required": ["id", "integrationId", "ownerId", "enabled", "status", "updatedAt"]
+    },
+    "AlertRoutingConfig": {
+      "title": "AlertRoutingConfig",
+      "description": "User alert routing matrix mapping Normal, Warning, and Critical severities to enabled channels",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Routing document ID", "maxLength": 128 },
+        "ownerId": { "type": "string", "description": "Authenticated owner UID", "maxLength": 128 },
+        "routes": { "type": "object", "description": "Nested severity-to-channel routing map" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last routing update", "maxLength": 64 }
+      },
+      "required": ["id", "ownerId", "routes", "updatedAt"]
+    },
+    "AutomationRule": {
+      "title": "AutomationRule",
+      "description": "Automated conditional workflow rule triggering cross-integration actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Automation rule ID", "maxLength": 128 },
+        "ownerId": { "type": "string", "description": "Authenticated owner UID", "maxLength": 128 },
+        "name": { "type": "string", "description": "Human-readable automation rule title", "maxLength": 140 },
+        "description": { "type": "string", "description": "Rule summary description", "maxLength": 400 },
+        "enabled": { "type": "boolean", "description": "Whether rule evaluation is active" },
+        "condition": { "type": "object", "description": "Structured condition configuration" },
+        "actions": { "type": "array", "description": "Bounded list of integration actions (max 8)" },
+        "cooldownSeconds": { "type": "number", "description": "Minimum interval between triggers" },
+        "lastTriggeredAt": { "type": "string", "description": "ISO timestamp of most recent execution", "maxLength": 64 },
+        "executionCount": { "type": "number", "description": "Total executions count" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last edit", "maxLength": 64 }
+      },
+      "required": ["id", "ownerId", "name", "enabled", "condition", "actions", "updatedAt"]
+    },
+    "IntegrationActivityLog": {
+      "title": "IntegrationActivityLog",
+      "description": "Audit log entry of integration tests, alert deliveries, and automation executions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Activity log ID", "maxLength": 128 },
+        "ownerId": { "type": "string", "description": "Authenticated owner UID", "maxLength": 128 },
+        "integrationId": { "type": "string", "description": "Target integration ID", "maxLength": 48 },
+        "applicationName": { "type": "string", "description": "Human-readable application name", "maxLength": 80 },
+        "eventType": { "type": "string", "description": "test_connection, alert_routing, automation_rule, config_update, manual_dispatch", "maxLength": 48 },
+        "timestamp": { "type": "string", "description": "ISO timestamp", "maxLength": 64 },
+        "status": { "type": "string", "description": "delivered, connected, auth_failed, not_configured, deduplicated, failed", "maxLength": 32 },
+        "severity": { "type": "string", "description": "normal, warning, critical, system", "maxLength": 32 },
+        "detail": { "type": "string", "description": "Sanitized delivery status or error details", "maxLength": 500 }
+      },
+      "required": ["id", "ownerId", "integrationId", "applicationName", "eventType", "timestamp", "status", "severity"]
+    }
+  },
+  "firestore": {
+    "/habitats/{habitatId}": {
+      "schema": { "$ref": "#/entities/HabitatProfile" },
+      "description": "Stores space habitat configuration and reference bounds"
+    },
+    "/readings/{readingId}": {
+      "schema": { "$ref": "#/entities/EnvironmentalReading" },
+      "description": "Time-series environmental telemetry recordings"
+    },
+    "/assessments/{assessmentId}": {
+      "schema": { "$ref": "#/entities/RiskAssessment" },
+      "description": "Multi-parameter risk assessments and hazard evaluations"
+    },
+    "/emergencies/{eventId}": {
+      "schema": { "$ref": "#/entities/EmergencyEvent" },
+      "description": "Emergency trigger events and protocol execution logs"
+    },
+    "/logs/{logId}": {
+      "schema": { "$ref": "#/entities/MissionLog" },
+      "description": "Mission operator logs and system audit trail"
+    },
+    "/thresholdConfigs/{configId}": {
+      "schema": { "$ref": "#/entities/ThresholdConfig" },
+      "description": "Configurable 5-tier environmental risk threshold matrices per habitat and user"
+    },
+    "/integrationConfigs/{docId}": {
+      "schema": { "$ref": "#/entities/IntegrationConfig" },
+      "description": "Owner-scoped non-secret integration connection statuses and public configs"
+    },
+    "/alertRoutingConfigs/{routingId}": {
+      "schema": { "$ref": "#/entities/AlertRoutingConfig" },
+      "description": "Owner-scoped alert severity routing configurations"
+    },
+    "/automationRules/{ruleId}": {
+      "schema": { "$ref": "#/entities/AutomationRule" },
+      "description": "Owner-scoped automated workflow rules"
+    },
+    "/integrationLogs/{logId}": {
+      "schema": { "$ref": "#/entities/IntegrationActivityLog" },
+      "description": "Owner-scoped integration activity and audit logs"
+    }
+  }
+}

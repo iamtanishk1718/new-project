@@ -1,0 +1,256 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all unknown paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidHabitatProfile(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.name is string && data.name.size() <= 120 &&
+             data.type is string && data.type.size() <= 50 &&
+             data.volumeM3 is number && data.volumeM3 > 0 &&
+             data.maxOccupancy is number && data.maxOccupancy > 0;
+    }
+
+    function isValidReading(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.habitatId is string && data.habitatId.size() <= 64 &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             data.oxygenPercent is number &&
+             data.carbonDioxidePpm is number &&
+             data.pressureKPa is number &&
+             data.temperatureC is number;
+    }
+
+    function isValidAssessment(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.habitatId is string && data.habitatId.size() <= 64 &&
+             data.overallHealthScore is number &&
+             data.overallRiskScore is number &&
+             data.riskClassification is string && data.riskClassification.size() <= 50;
+    }
+
+    function isValidEmergency(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.habitatId is string && data.habitatId.size() <= 64 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.severity is string && data.severity.size() <= 50 &&
+             data.protocolName is string && data.protocolName.size() <= 100;
+    }
+
+    function isValidMissionLog(data) {
+      return data.id is string && data.id.size() <= 64 &&
+             data.habitatId is string && data.habitatId.size() <= 64 &&
+             data.category is string && data.category.size() <= 50 &&
+             data.notes is string && data.notes.size() <= 2000;
+    }
+
+    function isValidThresholdConfig(data) {
+      return data.keys().hasAll(['id', 'habitatType', 'habitatName', 'ownerId', 'updatedAt', 'thresholds']) &&
+             data.keys().hasOnly(['id', 'habitatType', 'habitatName', 'ownerId', 'updatedAt', 'thresholds']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 64 &&
+             data.habitatType is string && data.habitatType.size() > 0 && data.habitatType.size() <= 32 &&
+             data.habitatName is string && data.habitatName.size() > 0 && data.habitatName.size() <= 120 &&
+             data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+             data.updatedAt is string && data.updatedAt.size() <= 64 &&
+             data.thresholds is map &&
+             data.thresholds.keys().hasAll(['oxygenPercent', 'carbonDioxidePpm', 'internalTemperatureC', 'pressureKPa']);
+    }
+
+    // Habitat profiles collection: readable by all signed-in crew; writable with valid schema
+    match /habitats/{habitatId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(habitatId) && isValidHabitatProfile(incoming());
+      allow update: if isSignedIn() && isValidId(habitatId) && isValidHabitatProfile(incoming());
+      allow delete: if isSignedIn() && isValidId(habitatId);
+    }
+
+    // Environmental telemetry records
+    match /readings/{readingId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(readingId) && isValidReading(incoming());
+      allow update: if isSignedIn() && isValidId(readingId) && isValidReading(incoming());
+      allow delete: if isSignedIn() && isValidId(readingId);
+    }
+
+    // Risk assessments
+    match /assessments/{assessmentId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(assessmentId) && isValidAssessment(incoming());
+      allow update: if isSignedIn() && isValidId(assessmentId) && isValidAssessment(incoming());
+      allow delete: if isSignedIn() && isValidId(assessmentId);
+    }
+
+    // Emergency incident events
+    match /emergencies/{eventId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(eventId) && isValidEmergency(incoming());
+      allow update: if isSignedIn() && isValidId(eventId) && isValidEmergency(incoming());
+      allow delete: if isSignedIn() && isValidId(eventId);
+    }
+
+    // Mission logs
+    match /logs/{logId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId) && isValidMissionLog(incoming());
+      allow update: if isSignedIn() && isValidId(logId) && isValidMissionLog(incoming());
+      allow delete: if isSignedIn() && isValidId(logId);
+    }
+
+    function hasNoPlaintextSecrets(data) {
+      return !data.keys().hasAny([
+        'botToken', 'apiKey', 'apiToken', 'authToken', 'accessToken',
+        'webhookUrl', 'personalAccessToken', 'longLivedToken',
+        'deviceKey', 'serviceAccountJson', 'fcmServerKey', 'secrets'
+      ]);
+    }
+
+    function isValidIntegrationConfig(data) {
+      return data.keys().hasAll(['id', 'integrationId', 'ownerId', 'enabled', 'status', 'updatedAt']) &&
+             data.keys().hasOnly([
+               'id', 'integrationId', 'ownerId', 'enabled', 'status',
+               'publicConfig', 'hasSecrets', 'maskedSecretSummary',
+               'lastSyncAt', 'lastError', 'updatedAt'
+             ]) &&
+             hasNoPlaintextSecrets(data) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.integrationId is string && data.integrationId.size() > 0 && data.integrationId.size() <= 48 &&
+             data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+             data.enabled is bool &&
+             data.status in ['not_configured', 'connected', 'disconnected', 'auth_failed', 'error'] &&
+             data.updatedAt is string && data.updatedAt.size() <= 64 &&
+             (!('publicConfig' in data) || data.publicConfig is map) &&
+             (!('hasSecrets' in data) || data.hasSecrets is bool) &&
+             (!('maskedSecretSummary' in data) || (data.maskedSecretSummary is string && data.maskedSecretSummary.size() <= 160)) &&
+             (!('lastSyncAt' in data) || (data.lastSyncAt is string && data.lastSyncAt.size() <= 64)) &&
+             (!('lastError' in data) || (data.lastError is string && data.lastError.size() <= 400));
+    }
+
+    function isValidAlertRoutingConfig(data) {
+      return data.keys().hasAll(['id', 'ownerId', 'routes', 'updatedAt']) &&
+             data.keys().hasOnly(['id', 'ownerId', 'routes', 'updatedAt']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+             data.routes is map &&
+             data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    function isValidAutomationRule(data) {
+      return data.keys().hasAll(['id', 'ownerId', 'name', 'enabled', 'condition', 'actions', 'updatedAt']) &&
+             data.keys().hasOnly([
+               'id', 'ownerId', 'name', 'description', 'enabled',
+               'condition', 'actions', 'cooldownSeconds',
+               'lastTriggeredAt', 'executionCount', 'updatedAt'
+             ]) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 140 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 400)) &&
+             data.enabled is bool &&
+             data.condition is map &&
+             data.actions is list && data.actions.size() <= 8 &&
+             (!('cooldownSeconds' in data) || (data.cooldownSeconds is number && data.cooldownSeconds >= 0 && data.cooldownSeconds <= 86400)) &&
+             (!('lastTriggeredAt' in data) || (data.lastTriggeredAt is string && data.lastTriggeredAt.size() <= 64)) &&
+             (!('executionCount' in data) || (data.executionCount is number && data.executionCount >= 0)) &&
+             data.updatedAt is string && data.updatedAt.size() <= 64;
+    }
+
+    function isValidIntegrationLog(data) {
+      return data.keys().hasAll(['id', 'ownerId', 'integrationId', 'applicationName', 'eventType', 'timestamp', 'status', 'severity']) &&
+             data.keys().hasOnly(['id', 'ownerId', 'integrationId', 'applicationName', 'eventType', 'timestamp', 'status', 'severity', 'detail']) &&
+             hasNoPlaintextSecrets(data) &&
+             data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
+             data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+             data.integrationId is string && data.integrationId.size() > 0 && data.integrationId.size() <= 48 &&
+             data.applicationName is string && data.applicationName.size() > 0 && data.applicationName.size() <= 80 &&
+             data.eventType is string && data.eventType.size() > 0 && data.eventType.size() <= 48 &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             data.status is string && data.status.size() <= 32 &&
+             data.severity is string && data.severity.size() <= 32 &&
+             (!('detail' in data) || (data.detail is string && data.detail.size() <= 500));
+    }
+
+    // Configurable 5-tier environmental risk threshold profiles (owner-scoped)
+    match /thresholdConfigs/{configId} {
+      allow get: if isSignedIn() && isValidId(configId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(configId) && isValidThresholdConfig(incoming());
+      allow update: if isSignedIn() && isValidId(configId) && isValidThresholdConfig(incoming()) &&
+                       existing().ownerId == request.auth.uid &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['habitatType', 'habitatName', 'thresholds', 'updatedAt']);
+      allow delete: if isSignedIn() && isValidId(configId) && existing().ownerId == request.auth.uid;
+    }
+
+    // Integration Hub non-secret connection states (strictly owner-scoped, zero secrets allowed)
+    match /integrationConfigs/{docId} {
+      allow get: if isSignedIn() && isValidId(docId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(docId) && isValidIntegrationConfig(incoming());
+      allow update: if isSignedIn() && isValidId(docId) && isValidIntegrationConfig(incoming()) &&
+                       existing().ownerId == request.auth.uid &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'enabled', 'status', 'publicConfig', 'hasSecrets',
+                         'maskedSecretSummary', 'lastSyncAt', 'lastError', 'updatedAt'
+                       ]);
+      allow delete: if isSignedIn() && isValidId(docId) && existing().ownerId == request.auth.uid;
+    }
+
+    // Alert routing matrix per user
+    match /alertRoutingConfigs/{routingId} {
+      allow get: if isSignedIn() && isValidId(routingId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(routingId) && isValidAlertRoutingConfig(incoming());
+      allow update: if isSignedIn() && isValidId(routingId) && isValidAlertRoutingConfig(incoming()) &&
+                       existing().ownerId == request.auth.uid &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['routes', 'updatedAt']);
+      allow delete: if isSignedIn() && isValidId(routingId) && existing().ownerId == request.auth.uid;
+    }
+
+    // Automated workflow rules per user
+    match /automationRules/{ruleId} {
+      allow get: if isSignedIn() && isValidId(ruleId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(ruleId) && isValidAutomationRule(incoming());
+      allow update: if isSignedIn() && isValidId(ruleId) && isValidAutomationRule(incoming()) &&
+                       existing().ownerId == request.auth.uid &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'name', 'description', 'enabled', 'condition', 'actions',
+                         'cooldownSeconds', 'lastTriggeredAt', 'executionCount', 'updatedAt'
+                       ]);
+      allow delete: if isSignedIn() && isValidId(ruleId) && existing().ownerId == request.auth.uid;
+    }
+
+    // Integration activity audit logs per user
+    match /integrationLogs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(logId) && isValidIntegrationLog(incoming());
+      allow update: if false;
+      allow delete: if isSignedIn() && isValidId(logId) && existing().ownerId == request.auth.uid;
+    }
+  }
+}
